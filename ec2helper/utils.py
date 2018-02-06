@@ -7,10 +7,13 @@ import six
 import re
 import json
 from datetime import datetime, date
+from dateutil import parser
 
 
 INTEGER = re.compile(r"^-?\d+$")                                                
 FLOAT = re.compile(r"^-?\d+(\.\d+)?$")
+BOOLTRUE = re.compile(r"^true$", flags=re.IGNORECASE)
+BOOLFALSE = re.compile(r"^false$", flags=re.IGNORECASE)
 
 
 def json_dump(data):
@@ -31,19 +34,39 @@ def json_dump(data):
 
 
 def parse_value(value):
+    """
+    Convert string tag value to data types.
+    """
     if value == "": return None
+    if INTEGER.match(value): return int(value)
+    if FLOAT.match(value): return float(value)
+    if BOOLTRUE.match(value): return True
+    if BOOLFALSE.match(value): return False
+    try:
+        value = parser.parse(value)
+    except:
+        pass
     return value
+
+
+def string_value(value):
+    """
+    Convert data types to string tag value.
+    """
+    if value is None: return ""
+    if isinstance(value, datetime): return value.isoformat()
+    return six.text_type(value)
 
 
 def tags_to_dict(tags):
     """
     Convert AWS style tags to dict.
     """
-    return dict([(x["Key"], x["Value"]) for x in tags])
+    return dict([(x["Key"], parse_value(x["Value"])) for x in tags])
 
 
 def dict_to_tags(tags):
     """
     Convert dict to AWS style tags.
     """
-    return [{"Key": k, "Value": v} for k, v in six.iteritems(tags)]
+    return [{"Key": k, "Value": string_value(v)} for k, v in six.iteritems(tags)]
