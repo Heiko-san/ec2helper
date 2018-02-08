@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-TagLock class to create a tag based lock accross all instances of a given 
+TagLock class to create a tag based lock accross all instances of a given
 group.
 """
 from __future__ import unicode_literals, absolute_import
@@ -22,13 +22,20 @@ class TagLock(object):
     run longer.
     Lock will not be assigned to an unhealthy autoscaling instance by default
     (check_health=True), disable to ignore health and lifecycle state.
+    If this instance can't be locked a ResourceLockingError will be raised
+    (ResourceAlreadyLocked or InstanceUnhealthy).
 
+    import time
     from ec2helper import Instance
-    i = Instance()                                                                  
-    with i.lock("MyLockTag") as lock:                                               
-        print("start with-block with tag lock: " + lock.name)
-        time.sleep(10)                                                              
-        print("end with-block with tag lock: " + lock.name)
+    from ec2helper.errors import *
+    i = Instance()
+    try:                                                                            
+        with i.lock("MyLockTag") as lock:                                           
+            print("start with-block with tag lock: " + lock.name)
+            time.sleep(10)                                                          
+            print("end with-block with tag lock: " + lock.name)                     
+    except ResourceLockingError:                                                    
+        print("Could not retrieve lock")
     """
     _locked = False
 
