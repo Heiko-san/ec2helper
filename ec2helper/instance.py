@@ -96,7 +96,8 @@ class Instance(object):
         Test if this instance is protected against scale in events.
         """
         data = self.autoscaling
-        return data["ProtectedFromScaleIn"] if data is not None else True
+        if data is None: return True
+        return data["ProtectedFromScaleIn"]
 
     @autoscaling_protected.setter
     def autoscaling_protected(self, value):
@@ -116,15 +117,18 @@ class Instance(object):
     @property
     def autoscaling_healthy(self):
         """
-        Test if this instance is protected against scale in events.
+        Test if this instance is considered healthy by the autoscaling group.
         """
         data = self.autoscaling
+        if data is None: return True
         return data["HealthStatus"] == "HEALTHY"
 
     @autoscaling_healthy.setter
     def autoscaling_healthy(self, value):
         """
-        Set protection against scale in events.
+        Set health status.
+        False will cause the autoscaling group to replace this instance (unless
+        it is protected, use autoscaling_force_unhealthy() to also unprotect).
         """
         data = self.autoscaling
         if data is None: return
@@ -136,12 +140,24 @@ class Instance(object):
         )
         assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
 
+    def autoscaling_force_unhealthy(self):
+        """
+        Force replacement of this instance.
+
+        Same as:
+        this_instance.autoscaling_protected = False
+        this_instance.autoscaling_healthy = False
+        """
+        self.autoscaling_protected = False
+        self.autoscaling_healthy = False
+
     @property
     def autoscaling_standby(self):
         """
         Test if this instance is in standby mode.
         """
         data = self.autoscaling
+        if data is None: return False
         return data["LifecycleState"] == "Standby"
 
     @autoscaling_standby.setter
