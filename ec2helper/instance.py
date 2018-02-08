@@ -121,7 +121,7 @@ class Instance(object):
         data = self.autoscaling
         return data["HealthStatus"] == "HEALTHY"
 
-    @autoscaling_health.setter
+    @autoscaling_healthy.setter
     def autoscaling_healthy(self, value):
         """
         Set protection against scale in events.
