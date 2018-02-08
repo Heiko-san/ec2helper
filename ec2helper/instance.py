@@ -5,6 +5,8 @@ from __future__ import unicode_literals, absolute_import
 import boto3
 from ec2_metadata import ec2_metadata
 from ec2helper.utils import tags_to_dict, dict_to_tags
+from ec2helper.tag_lock import TagLock
+
 
 class Instance(object):
     """
@@ -17,6 +19,13 @@ class Instance(object):
         """
         self.id = instance_id
         self.region = region
+
+    def lock(self, lock_name, group_tag=None, group_value=None, ttl=1800,
+        check_health=True):
+        """
+        """
+        return TagLock(self, lock_name, group_tag, group_value, ttl,
+            check_health)
 
 ##### tags ####################################################################
 
