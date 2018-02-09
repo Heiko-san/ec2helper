@@ -12,8 +12,9 @@ tags.
 Examples
 --------
 
+Tag manipulation
+
 .. code-block:: python
-    :caption: Tag manipulation
     
     >>> from ec2helper import Instance
     >>> i = Instance()
@@ -26,15 +27,17 @@ Examples
     >>> i.tags
     {'Name': 'my-server1'}
 
+Force termination of autoscaling instance
+
 .. code-block:: python
-    :caption: Force termination of autoscaling instance
     
     >>> from ec2helper import Instance
     >>> i = Instance()
     >>> i.autoscaling_healthy = False
 
+Protect autoscaling instance from scale in
+
 .. code-block:: python
-    :caption: Protect autoscaling instance from scale in
     
     >>> from ec2helper import Instance
     >>> i = Instance()
