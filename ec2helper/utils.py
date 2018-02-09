@@ -3,18 +3,22 @@
 .. _boto3: https://boto3.readthedocs.io/en/latest/
 .. _ec2_metadata: https://github.com/adamchainz/ec2-metadata
 
-ec2helper.utils - Common utils
-==============================
+utils - Common utils for internal and external use
+==================================================
 
-foobar
-------
+Module :mod:`ec2helper.utils` provides functions for use inside the
+:mod:`ec2helper` module.
+However these utilities get exposed via :mod:`ec2helper` since they may also be
+useful for the user.
 
-...
+.. code-block:: python
+    
+    from ec2helper import IS_EC2, metadata
+    
+    if IS_EC2:
+        print(metadata('ami_id'))
 
-baz
----
-
-...
+|
 """
 from __future__ import unicode_literals, absolute_import
 import six
@@ -49,8 +53,7 @@ def metadata(attribute):
     But check if we are actually running on an EC2 instance (using
     :attr:`~ec2helper.utils.IS_EC2`) and return :code:`None` otherwise.
     
-    :param string attribute: The attribute (in string form) to get from
-        ec2_metadata_.
+    :param string attribute: The attribute to get from ec2_metadata_.
     :return: The value from ec2_metadata_ if running on an EC2 instance,
         :code:`None` otherwise.
     :rtype: None or string or any other data returned by ec2_metadata
@@ -90,8 +93,10 @@ def _parse_value(value):
     """
     Convert string tag value to data types.
     
-    :param value: ...
-    :return: ...
+    .. seealso::
+    
+        Function :func:`ec2helper.utils.tags_to_dict`
+            Uses this function for conversion.
     """
     if value == "": return None
     if value == "True": return True
@@ -106,8 +111,10 @@ def _string_value(value):
     """
     Convert data types to string tag value.
     
-    :param value: ...
-    :return: ...
+    .. seealso::
+    
+        Function :func:`ec2helper.utils.dict_to_tags`
+            Uses this function for conversion.
     """
     if value is None: return ""
     if isinstance(value, datetime): return value.isoformat()
@@ -145,30 +152,29 @@ def tags_to_dict(tags):
     
     .. seealso::
     
-        Module :py:mod:`zipfile`
-            Documentation of the :py:mod:`zipfile` standard module.
-    
-    .. note::
-    
-        Module :py:class:`ec2_metadata.ec2_metadata`
-            Documentation of the :py:mod:`zipfile` standard module.
-            
-        * :func:`~ec2helper.utils.dict_to_tags`
-        * :func:`~ec2helper.utils.dict_to_tags`
-        * :func:`~ec2helper.utils.dict_to_tags`
+        Function :func:`ec2helper.utils.dict_to_tags`
+            Reverse conversion.
     """
     return dict([(x["Key"], _parse_value(x["Value"])) for x in tags])
 
 
 def dict_to_tags(tags):
     """
-    Convert dict to AWS style tags.
+    Convert flat tags dict to AWS style tags as supplied by AWS API.
+    Values will be stringified.
+    
+    * :code:`None` will convert to empty string.
+    * :py:mod:`datetime` will convert to ISO time strings (e.g.
+      "2018-02-10T16:07:48+00:00").
     
     :param dict tags: Tags as a flat dict of the Key-Value pairs.
     :return: AWS style tags. :code:`[{"Key": …, "Value": …}, …]`
     :rtype: list[dict[string, string]]
-    :raises ValueError: if foo is the same as bar
     
+    .. seealso::
+    
+        Function :func:`ec2helper.utils.tags_to_dict`
+            Reverse conversion.
     """
     return [{"Key": k, "Value": _string_value(v)} for k, v in
             six.iteritems(tags)]

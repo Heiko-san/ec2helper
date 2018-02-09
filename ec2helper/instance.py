@@ -22,6 +22,7 @@ class Instance(object):
     def lock(self, lock_name, group_tag=None, group_value=None, ttl=720,
         check_health=True):
         """
+        :raises ValueError: if foo is the same as bar
         """
         return TagLock(self, lock_name, group_tag, group_value, ttl,
             check_health)

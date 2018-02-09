@@ -9,7 +9,6 @@ Module contents and documentation
                                                                                 
    utils
 
-
 Indices and tables
 ------------------
 
