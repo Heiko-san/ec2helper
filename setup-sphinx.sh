@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ -d docs ]; then
+    exit 1
+fi
+
 sphinx-quickstart -q --ext-autodoc --ext-intersphinx --ext-viewcode -a "Heiko Finzel" -p ec2helper -v "0.1" -r "0.1a1" docs
 # look for our code in docs/../
 sed -i 's!# import os!import os\nimport sys\nsys.path.insert(0, os.path.abspath("../"))!' docs/conf.py
