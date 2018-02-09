@@ -34,17 +34,19 @@ Force termination of autoscaling instance
 
 .. code-block:: python
     
-    >>> from ec2helper import Instance
-    >>> i = Instance()
-    >>> i.autoscaling_healthy = False
+    from ec2helper import Instance
+    
+    i = Instance()
+    i.autoscaling_healthy = False
 
 Protect autoscaling instance from scale in
 
 .. code-block:: python
     
-    >>> from ec2helper import Instance
-    >>> i = Instance()
-    >>> i.autoscaling_protected = True
+    from ec2helper import Instance
+    
+    i = Instance()
+    i.autoscaling_protected = True
 
 Project links
 -------------
