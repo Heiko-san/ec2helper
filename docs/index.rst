@@ -1,17 +1,14 @@
 .. include README.rst for common introduction
 .. include:: ../README.rst
 
+.. _main_document:
+
 Module contents and documentation
 ---------------------------------
 
 .. toctree::                                                                    
-   :maxdepth: 2
+   :titlesonly:
                                                                                 
    utils
 
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. include:: menu.rst

@@ -3,9 +3,6 @@
 .. _boto3: https://boto3.readthedocs.io/en/latest/
 .. _ec2_metadata: https://github.com/adamchainz/ec2-metadata
 
-utils - Common utils for internal and external use
-==================================================
-
 Module :mod:`ec2helper.utils` provides functions for use inside the
 :mod:`ec2helper` module.
 However these utilities get exposed via :mod:`ec2helper` since they may also be
