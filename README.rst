@@ -9,6 +9,12 @@ Its intention is to simplify common tasks you want to do in the context of
 *"this EC2 instance we're on"*, like retrieving or modifying this instance's
 tags.
 
+Project links
+-------------
+
+* Sources: https://github.com/Heiko-san/ec2helper
+* Documentation: https://github.com/Heiko-san/ec2helper
+
 Examples
 --------
 
@@ -48,8 +54,3 @@ Protect autoscaling instance from scale in
     i = Instance()
     i.autoscaling_protected = True
 
-Project links
--------------
-
-* Sources: https://github.com/Heiko-san/ec2helper
-* Documentation: https://github.com/Heiko-san/ec2helper
