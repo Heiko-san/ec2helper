@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+.. _boto3: https://boto3.readthedocs.io/en/latest/
+.. _ec2_metadata: https://github.com/adamchainz/ec2-metadata
+
 Common utils.
 """
 from __future__ import unicode_literals, absolute_import
@@ -11,18 +14,16 @@ from ec2_metadata import ec2_metadata
 from datetime import datetime, date
 from dateutil import parser
 
-
 INTEGER = re.compile(r"^-?\d+$")
 FLOAT = re.compile(r"^-?\d+(\.\d+)?$")
-BOOLTRUE = re.compile(r"^true$", flags=re.IGNORECASE)
-BOOLFALSE = re.compile(r"^false$", flags=re.IGNORECASE)
-
+ISOTIME = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{6})?([+-]\d{2}:\d{2})?$")
 
 try:
     # This request still succeeded with a timeout of 0.001, so 0.5 should be a
     # good compromise between stability and load time on none EC2 instances.
     requests.get("http://169.254.169.254/latest/meta-data/reservation-id",
-        timeout=0.5)
+                 timeout=0.5)
 except requests.exceptions.ConnectTimeout:
     IS_EC2 = False
 else:
@@ -33,7 +34,14 @@ else:
 
 def metadata(attribute):
     """
-    Get metadata attribute if on EC2, None otherwise.
+    Get EC2 metadata from local EC2 metadata API via ec2_metadata_.
+    But check if we are actually running on an EC2 instance (using
+    :attr:`~ec2helper.utils.IS_EC2`) and return None otherwise.
+    
+    :param string attribute: The attribute (in string form) to get from
+        ec2_metadata_.
+    :return: The value from ec2_metadata_ if running on an EC2 instance,
+        None otherwise.
     """
     if IS_EC2:
         return getattr(ec2_metadata, attribute)
@@ -42,13 +50,21 @@ def metadata(attribute):
 
 def json_dump(data):
     """
-    Convenience helper for human readable JSON data with datetime support.
+    Convenience helper for printing human readable JSON data to the console
+    for debugging and testing purpose.
+    This will actually just :code:`print(json.dumps(data, indent=4, sort_keys
+    ...))` but adds basic serialization support for any object type,
+    especially for datetime since it often is included in boto3_ responses.
+    
+    :param data: Any data structure you want to json.dump.
     """
+
     def json_serial(obj):
         if isinstance(obj, (datetime, date)):
             return "{0} ({1})".format(obj.isoformat(), type(obj))
         else:
             return "{0} ({1})".format(str(obj), type(obj))
+
     print(json.dumps(
         data,
         indent=4,
@@ -60,22 +76,25 @@ def json_dump(data):
 def _parse_value(value):
     """
     Convert string tag value to data types.
+    
+    :param value: ...
+    :return: ...
     """
     if value == "": return None
     if INTEGER.match(value): return int(value)
     if FLOAT.match(value): return float(value)
-    if BOOLTRUE.match(value): return True
-    if BOOLFALSE.match(value): return False
-    try:
-        value = parser.parse(value)
-    except:
-        pass
+    if value == "True": return True
+    if value == "False": return False
+    if ISOTIME.match(value): return parser.parse(value)
     return value
 
 
 def _string_value(value):
     """
     Convert data types to string tag value.
+    
+    :param value: ...
+    :return: ...
     """
     if value is None: return ""
     if isinstance(value, datetime): return value.isoformat()
@@ -84,7 +103,31 @@ def _string_value(value):
 
 def tags_to_dict(tags):
     """
-    Convert AWS style tags to dict.
+    Convert AWS style tags as supplied by AWS API to a flat dict.
+    Values will also be converted to native data types if possible:
+    
+    * Empty string will convert to None.
+    * "True" and "False" will be converted to bool, but only with that exact 
+      case because :code:`True` and :code:`False` stringify that way (we don't
+      want to change a value if we just load and save tags).
+    * :code:`int` values will be parsed (:code:`^-?\d+$`).
+    * :code:`float` values will be parsed (:code:`^-?\d+\.\d+$`).
+    * ISO time strings will convert to :code:`datetime` (e.g.
+      "2018-02-10T16:07:48+00:00").
+    
+    :param list tags: AWS style tags. :code:`[{"Key": …, "Value": …}, …]`
+    :return: Tags as a flat dict of the Key-Value pairs.
+    :example:
+    
+    .. code-block:: json
+    
+        {
+            "Name": "my-server1",
+            "OS": "Amazon Linux 2",
+            "Stage": "prod",
+            "Backup": true,
+            "RetentionDays": 30
+        }
     """
     return dict([(x["Key"], _parse_value(x["Value"])) for x in tags])
 
@@ -92,6 +135,9 @@ def tags_to_dict(tags):
 def dict_to_tags(tags):
     """
     Convert dict to AWS style tags.
+    
+    :param dict tags: Tags as a flat dict of the Key-Value pairs.
+    :return: AWS style tags. :code:`[{"Key": …, "Value": …}, …]`
     """
     return [{"Key": k, "Value": _string_value(v)} for k, v in
-        six.iteritems(tags)]
+            six.iteritems(tags)]
