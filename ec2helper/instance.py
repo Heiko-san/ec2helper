@@ -3,8 +3,7 @@
 """
 from __future__ import unicode_literals, absolute_import
 import boto3
-from ec2_metadata import ec2_metadata
-from ec2helper.utils import tags_to_dict, dict_to_tags
+from ec2helper.utils import IS_EC2, metadata, tags_to_dict, dict_to_tags
 from ec2helper.tag_lock import TagLock
 
 
@@ -12,8 +11,8 @@ class Instance(object):
     """
     """
 
-    def __init__(self, instance_id=ec2_metadata.instance_id,
-        region=ec2_metadata.region):
+    def __init__(self, instance_id=metadata("instance_id"),
+        region=metadata("region")):
         """
         Constructor
         """

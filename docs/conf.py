@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # ec2helper documentation build configuration file, created by
-# sphinx-quickstart on Fri Feb  9 03:18:30 2018.
+# sphinx-quickstart on Fri Feb  9 04:11:56 2018.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.

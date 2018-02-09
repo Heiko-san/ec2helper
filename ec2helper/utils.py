@@ -6,14 +6,33 @@ from __future__ import unicode_literals, absolute_import
 import six
 import re
 import json
+import requests
+from ec2_metadata import ec2_metadata
 from datetime import datetime, date
 from dateutil import parser
 
 
-INTEGER = re.compile(r"^-?\d+$")                                                
+INTEGER = re.compile(r"^-?\d+$")
 FLOAT = re.compile(r"^-?\d+(\.\d+)?$")
 BOOLTRUE = re.compile(r"^true$", flags=re.IGNORECASE)
 BOOLFALSE = re.compile(r"^false$", flags=re.IGNORECASE)
+
+
+try:
+    requests.get("http://169.254.169.254", timeout=0.5)
+except requests.exceptions.ConnectTimeout:
+    IS_EC2 = False
+else:
+    IS_EC2 = True
+
+
+def metadata(attribute):
+    """
+    Get metadata attribute if on EC2, None otherwise.
+    """
+    if IS_EC2:
+        return getattr(ec2_metadata, attribute)
+    return None
 
 
 def json_dump(data):

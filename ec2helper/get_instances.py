@@ -4,11 +4,10 @@ Get instance lists and tags by different means.
 """
 from __future__ import unicode_literals, absolute_import
 import boto3
-from ec2_metadata import ec2_metadata
-from ec2helper.utils import tags_to_dict
+from ec2helper.utils import IS_EC2, metadata, tags_to_dict
 
 
-def get_instances_by_tag(key, value=None, region=ec2_metadata.region):
+def get_instances_by_tag(key, value=None, region=metadata("region")):
     """
     Get a list of instance data (describe_instances) from any tag-key or
     tag-key-value combination and return the whole data as returned by the API,
@@ -33,7 +32,7 @@ def get_instances_by_tag(key, value=None, region=ec2_metadata.region):
     return instances
 
 
-def get_instance_tags_by_tag(key, value=None, region=ec2_metadata.region):
+def get_instance_tags_by_tag(key, value=None, region=metadata("region")):
     """
     Like get_instances_by_tag, but only returns a dict of instance IDs and
     their tags as dict.
@@ -55,7 +54,7 @@ def get_instance_tags_by_tag(key, value=None, region=ec2_metadata.region):
         in get_instances_by_tag(key, value, region)])
 
 
-def get_instance_status_by_autoscaling_group(asg, region=ec2_metadata.region):
+def get_instance_status_by_autoscaling_group(asg, region=metadata("region")):
     """
     Get a list of instance data ("Instances" of describe_auto_scaling_groups)
     from given autoscaling group name.
@@ -87,7 +86,7 @@ def get_instance_status_by_autoscaling_group(asg, region=ec2_metadata.region):
     return response["AutoScalingGroups"][0]["Instances"]
 
 
-def get_instances_by_autoscaling_group(asg, region=ec2_metadata.region):
+def get_instances_by_autoscaling_group(asg, region=metadata("region")):
     """
     Get a list of instance data (describe_instances) from given autoscaling
     group name and return the whole data as returned by the API, only that the
@@ -109,7 +108,7 @@ def get_instances_by_autoscaling_group(asg, region=ec2_metadata.region):
     return instances
 
 
-def get_instance_tags_by_autoscaling_group(asg, region=ec2_metadata.region):
+def get_instance_tags_by_autoscaling_group(asg, region=metadata("region")):
     """
     Like get_instances_by_autoscaling_group, but only returns a dict of
     instance IDs and their tags as dict.
