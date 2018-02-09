@@ -19,10 +19,15 @@ BOOLFALSE = re.compile(r"^false$", flags=re.IGNORECASE)
 
 
 try:
-    requests.get("http://169.254.169.254", timeout=0.5)
+    # This request still succeeded with a timeout of 0.001, so 0.5 should be a
+    # good compromise between stability and load time on none EC2 instances.
+    requests.get("http://169.254.169.254/latest/meta-data/reservation-id",
+        timeout=0.5)
 except requests.exceptions.ConnectTimeout:
     IS_EC2 = False
 else:
+    #: This variable indicates if calling the EC2 metadata API succeeded, thus
+    #: if we're on an EC2 instance.
     IS_EC2 = True
 
 
@@ -52,7 +57,7 @@ def json_dump(data):
     ))
 
 
-def parse_value(value):
+def _parse_value(value):
     """
     Convert string tag value to data types.
     """
@@ -68,7 +73,7 @@ def parse_value(value):
     return value
 
 
-def string_value(value):
+def _string_value(value):
     """
     Convert data types to string tag value.
     """
@@ -81,11 +86,12 @@ def tags_to_dict(tags):
     """
     Convert AWS style tags to dict.
     """
-    return dict([(x["Key"], parse_value(x["Value"])) for x in tags])
+    return dict([(x["Key"], _parse_value(x["Value"])) for x in tags])
 
 
 def dict_to_tags(tags):
     """
     Convert dict to AWS style tags.
     """
-    return [{"Key": k, "Value": string_value(v)} for k, v in six.iteritems(tags)]
+    return [{"Key": k, "Value": _string_value(v)} for k, v in
+        six.iteritems(tags)]
