@@ -1,0 +1,14 @@
+boto3
+botocore
+cached-property
+certifi
+chardet
+docutils
+ec2-metadata
+idna
+jmespath
+python-dateutil
+requests
+s3transfer
+six
+urllib3
