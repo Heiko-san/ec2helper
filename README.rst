@@ -1,29 +1,10 @@
-.. ec2helper documentation master file, created by
-   sphinx-quickstart on Fri Feb  9 04:11:56 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. This is included in docs/index.rst
+.. _boto3: https://boto3.readthedocs.io/en/latest/
+.. _ec2-metadata: https://github.com/adamchainz/ec2-metadata
+ec2helper - A python lib for common EC2 tasks
+=============================================
 
-Welcome to ec2helper's documentation!
-=====================================
-
-.. comment :) include README.md ???
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-foobar                                                                       
-======                                                                       
-                                                                                
-.. toctree::                                                                    
-   :maxdepth: 4                                                                 
-                                                                                
-   utils
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+ec2helper basically is a wrapper around boto3_ and ec2-metadata_.
+Its intention is to simplify common tasks you want to do in the context of
+"this EC2 instance we're on", like retrieving or modifying this instance's
+tags.
