@@ -39,8 +39,8 @@ class TagLock(object):
     """
     _locked = False
 
-    def __init__(self, instance, lock_name, group_tag=None, group_value=None,
-        ttl=1800, check_health=True):
+    def __init__(self, instance, lock_name, group_tag, group_value, ttl,
+                 check_health):
         """constructor"""
         self._instance = instance
         self.name = lock_name
@@ -82,7 +82,7 @@ class TagLock(object):
         if self._locked:
             raise AttributeError(
                 "Attributes of class '{0}' are readonly.".format(
-                self.__class__.__name__))
+                    self.__class__.__name__))
         else:
             super(type(self), self).__setattr__(name, value)
 
@@ -113,7 +113,7 @@ class TagLock(object):
             if ignore_self and instance == self._instance.id:
                 continue
             if self.name in self.group_instances[instance
-                ] and self.group_instances[instance][self.name] > self.time:
+            ] and self.group_instances[instance][self.name] > self.time:
                 raise ResourceAlreadyLocked()
 
     def __set_lock_time(self):
@@ -122,7 +122,7 @@ class TagLock(object):
         time zone for ttl calculation.
         """
         self.time = datetime.now(tz=tz.tzutc()).replace(microsecond=0)
-        self.end_time = self.time + timedelta(seconds=self.ttl*60)
+        self.end_time = self.time + timedelta(seconds=self.ttl * 60)
 
     def __report_unhealthy(self):
         """
@@ -143,10 +143,11 @@ class TagLock(object):
         """
         if self.group_tag is not None:
             self.group_instances = get_instance_tags_by_tag(self.group_tag,
-                self.group_value)
+                                                            self.group_value)
         else:
             assert self.autoscaling is not None, ("Instance must be in an "
-                "autoscaling group or 'group_tag' must be given.")
+                                                  "autoscaling group or "
+                                                  "'group_tag' must be given.")
             self.group_instances = get_instance_tags_by_autoscaling_group(
                 self.autoscaling["AutoScalingGroupName"])
 

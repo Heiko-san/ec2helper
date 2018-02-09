@@ -3,7 +3,18 @@
 .. _boto3: https://boto3.readthedocs.io/en/latest/
 .. _ec2_metadata: https://github.com/adamchainz/ec2-metadata
 
-Common utils.
+ec2helper.utils - Common utils
+==============================
+
+foobar
+------
+
+...
+
+baz
+---
+
+...
 """
 from __future__ import unicode_literals, absolute_import
 import six
@@ -36,12 +47,13 @@ def metadata(attribute):
     """
     Get EC2 metadata from local EC2 metadata API via ec2_metadata_.
     But check if we are actually running on an EC2 instance (using
-    :attr:`~ec2helper.utils.IS_EC2`) and return None otherwise.
+    :attr:`~ec2helper.utils.IS_EC2`) and return :code:`None` otherwise.
     
     :param string attribute: The attribute (in string form) to get from
         ec2_metadata_.
     :return: The value from ec2_metadata_ if running on an EC2 instance,
-        None otherwise.
+        :code:`None` otherwise.
+    :rtype: None or string or any other data returned by ec2_metadata
     """
     if IS_EC2:
         return getattr(ec2_metadata, attribute)
@@ -54,7 +66,8 @@ def json_dump(data):
     for debugging and testing purpose.
     This will actually just :code:`print(json.dumps(data, indent=4, sort_keys
     ...))` but adds basic serialization support for any object type,
-    especially for datetime since it often is included in boto3_ responses.
+    especially for :py:mod:`datetime` since it often is included in boto3_
+    responses.
     
     :param data: Any data structure you want to json.dump.
     """
@@ -81,10 +94,10 @@ def _parse_value(value):
     :return: ...
     """
     if value == "": return None
-    if INTEGER.match(value): return int(value)
-    if FLOAT.match(value): return float(value)
     if value == "True": return True
     if value == "False": return False
+    if INTEGER.match(value): return int(value)
+    if FLOAT.match(value): return float(value)
     if ISOTIME.match(value): return parser.parse(value)
     return value
 
@@ -106,20 +119,21 @@ def tags_to_dict(tags):
     Convert AWS style tags as supplied by AWS API to a flat dict.
     Values will also be converted to native data types if possible:
     
-    * Empty string will convert to None.
+    * Empty string will convert to :code:`None`.
     * "True" and "False" will be converted to bool, but only with that exact 
       case because :code:`True` and :code:`False` stringify that way (we don't
       want to change a value if we just load and save tags).
     * :code:`int` values will be parsed (:code:`^-?\d+$`).
     * :code:`float` values will be parsed (:code:`^-?\d+\.\d+$`).
-    * ISO time strings will convert to :code:`datetime` (e.g.
+    * ISO time strings will convert to :py:mod:`datetime` (e.g. 
       "2018-02-10T16:07:48+00:00").
     
     :param list tags: AWS style tags. :code:`[{"Key": …, "Value": …}, …]`
     :return: Tags as a flat dict of the Key-Value pairs.
-    :example:
+    :rtype: dict[string, string or None or bool or int or float or datetime]
     
     .. code-block:: json
+        :caption: Example return value
     
         {
             "Name": "my-server1",
@@ -128,6 +142,20 @@ def tags_to_dict(tags):
             "Backup": true,
             "RetentionDays": 30
         }
+    
+    .. seealso::
+    
+        Module :py:mod:`zipfile`
+            Documentation of the :py:mod:`zipfile` standard module.
+    
+    .. note::
+    
+        Module :py:class:`ec2_metadata.ec2_metadata`
+            Documentation of the :py:mod:`zipfile` standard module.
+            
+        * :func:`~ec2helper.utils.dict_to_tags`
+        * :func:`~ec2helper.utils.dict_to_tags`
+        * :func:`~ec2helper.utils.dict_to_tags`
     """
     return dict([(x["Key"], _parse_value(x["Value"])) for x in tags])
 
@@ -138,6 +166,9 @@ def dict_to_tags(tags):
     
     :param dict tags: Tags as a flat dict of the Key-Value pairs.
     :return: AWS style tags. :code:`[{"Key": …, "Value": …}, …]`
+    :rtype: list[dict[string, string]]
+    :raises ValueError: if foo is the same as bar
+    
     """
     return [{"Key": k, "Value": _string_value(v)} for k, v in
             six.iteritems(tags)]

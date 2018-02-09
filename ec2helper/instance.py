@@ -19,7 +19,7 @@ class Instance(object):
         self.id = instance_id
         self.region = region
 
-    def lock(self, lock_name, group_tag=None, group_value=None, ttl=1800,
+    def lock(self, lock_name, group_tag=None, group_value=None, ttl=720,
         check_health=True):
         """
         """

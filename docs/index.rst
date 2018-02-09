@@ -1,21 +1,17 @@
 .. include README.rst for common introduction
 .. include:: ../README.rst
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+Module contents and documentation
+---------------------------------
 
-foobar                                                                       
-======                                                                       
-                                                                                
 .. toctree::                                                                    
-   :maxdepth: 4                                                                 
+   :maxdepth: 2
                                                                                 
    utils
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
