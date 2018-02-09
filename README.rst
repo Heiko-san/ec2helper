@@ -16,16 +16,19 @@ Tag manipulation
 
 .. code-block:: python
     
-    >>> from ec2helper import Instance
-    >>> i = Instance()
-    >>> i.tags
-    {'Name': 'my-server1', 'OS': 'Ubuntu'}
-    >>> i.tags = {'OS': 'Redhat', 'Stage': 'test'}
-    >>> i.tags
-    {'Name': 'my-server1', 'OS': 'Redhat', 'Stage': 'test'}
-    >>> i.delete_tags('OS', 'Stage')
-    >>> i.tags
-    {'Name': 'my-server1'}
+    from ec2helper import Instance
+
+    i = Instance()
+    print(i.tags)
+    # {'Name': 'my-server1', 'OS': 'Ubuntu'}
+
+    i.tags = {'OS': 'Redhat', 'Stage': 'test'}
+    print(i.tags)
+    # {'Name': 'my-server1', 'OS': 'Redhat', 'Stage': 'test'}
+
+    i.delete_tags('OS', 'Stage')
+    print(i.tags)
+    # {'Name': 'my-server1'}
 
 Force termination of autoscaling instance
 
