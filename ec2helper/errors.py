@@ -23,22 +23,22 @@ class ResourceLockingError(Ec2HelperError):
     """
     Common base class for all exceptions raised by 
     :class:`~ec2helper.instance.Instance`'s
-    :func:`~ec2helper.instance.Instance.lock` guard.
+    :func:`~ec2helper.instance.Instance.lock` context guard.
     """
     pass
 
 class ResourceAlreadyLocked(ResourceLockingError):
     """
     Raised by :class:`~ec2helper.instance.Instance`'s
-    :func:`~ec2helper.instance.Instance.lock` guard if another EC2 instance
-    already holds the requested lock.
+    :func:`~ec2helper.instance.Instance.lock` context guard if another EC2
+    instance already holds the requested lock.
     """
     pass
 
 class InstanceUnhealthy(ResourceLockingError):
     """
     Raised by :class:`~ec2helper.instance.Instance`'s 
-    :func:`~ec2helper.instance.Instance.lock` guard if this EC2 instance 
+    :func:`~ec2helper.instance.Instance.lock` context guard if this EC2 instance
     can't retrieve the lock because it is considered unhealthy by autoscaling
     group.
     """

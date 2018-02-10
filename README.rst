@@ -19,6 +19,7 @@ Examples
 --------
 
 Tag manipulation
+(see :attr:`ec2helper.instance.Instance.tags`)
 
 .. code-block:: python
     
@@ -37,6 +38,7 @@ Tag manipulation
     # {'Name': 'my-server1'}
 
 Force termination of autoscaling instance
+(see :attr:`ec2helper.instance.Instance.autoscaling_healthy`)
 
 .. code-block:: python
     
@@ -46,6 +48,7 @@ Force termination of autoscaling instance
     i.autoscaling_healthy = False
 
 Protect autoscaling instance from scale in
+(see :attr:`ec2helper.instance.Instance.autoscaling_protected`)
 
 .. code-block:: python
     
@@ -53,4 +56,22 @@ Protect autoscaling instance from scale in
     
     i = Instance()
     i.autoscaling_protected = True
+
+Lock autoscaling instance for task that should only run on a single instance
+(see :func:`ec2helper.instance.Instance.lock`)
+
+.. code-block:: python
+
+    import time
+    from ec2helper import Instance
+    from ec2helper.errors import ResourceLockingError
+               
+    i = Instance()
+    try:
+        with i.lock("MyLockTag") as lock:
+            print("Start with-block with tag lock: " + lock.name)
+            time.sleep(10)
+            print("End with-block with tag lock: " + lock.name)
+    except ResourceLockingError:
+        print("Could not retrieve lock!")
 
