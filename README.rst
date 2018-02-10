@@ -18,8 +18,9 @@ Project links
 Examples
 --------
 
-Tag manipulation
-(see :attr:`ec2helper.instance.Instance.tags`)
+Tag manipulation (see `tags <http://ec2helper.readthedocs
+.io/en/latest/instance.html#ec2helper.instance.Instance.tags>`_)
+
 
 .. code-block:: python
     
@@ -37,8 +38,9 @@ Tag manipulation
     print(i.tags)
     # {'Name': 'my-server1'}
 
-Force termination of autoscaling instance
-(see :attr:`ec2helper.instance.Instance.autoscaling_healthy`)
+Force termination of autoscaling instance (see `autoscaling_healthy
+<http://ec2helper.readthedocs.io/en/latest/instance.html#ec2helper.instance
+.Instance.autoscaling_healthy>`_)
 
 .. code-block:: python
     
@@ -47,8 +49,9 @@ Force termination of autoscaling instance
     i = Instance()
     i.autoscaling_healthy = False
 
-Protect autoscaling instance from scale in
-(see :attr:`ec2helper.instance.Instance.autoscaling_protected`)
+Protect autoscaling instance from scale in (see `autoscaling_protected
+<http://ec2helper.readthedocs.io/en/latest/instance.html#ec2helper.instance
+.Instance.autoscaling_protected>`_)
 
 .. code-block:: python
     
@@ -58,7 +61,8 @@ Protect autoscaling instance from scale in
     i.autoscaling_protected = True
 
 Lock autoscaling instance for task that should only run on a single instance
-(see :func:`ec2helper.instance.Instance.lock`)
+(see `lock <http://ec2helper.readthedocs.io/en/latest/instance
+.html#ec2helper.instance.Instance.lock>`_)
 
 .. code-block:: python
 
