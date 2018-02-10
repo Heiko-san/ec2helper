@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+.. _boto3: https://boto3.readthedocs.io/en/latest/
+
 The Instance class
 ==================
 
@@ -27,15 +29,19 @@ class Instance(object):
 
     def __init__(self, instance_id=metadata("instance_id"),
         region=metadata("region")):
-        """
-        Constructor - see class documentation.
-        """
+        """Constructor - see class docu."""
         self.id = instance_id
         self.region = region
 
     def lock(self, lock_name, group_tag=None, group_value=None, ttl=720,
         check_health=True):
         """
+        Context guard that acts as a locking system accross multiple EC2 
+        instances selected by autoscaling group, tag key or tag key-value 
+        combination (called the lock group further on). Try to set
+        :attr:`lock_name` as a tag at this instance to indicate that it holds
+        the lock. If another instance of the lock group already holds a still
+        valid lock raise :class:`~ec2helper.errors.ResourceAlreadyLocked`.
         
         :param string lock_name: The name of the lock to retrieve.
                     
@@ -107,7 +113,56 @@ class Instance(object):
     @property
     def tags(self):
         """
-        Get this instance's tags from API (as dict).
+        Get or update this EC2 instance's tags. The values will be converted 
+        in either direction as documented for
+        :func:`~ec2helper.utils.tags_to_dict`.
+        
+        .. code-block:: json
+            :caption: Example value
+    
+            {
+                "Name": "my-server1",
+                "OS": "Amazon Linux 2",
+                "Stage": "prod",
+                "Backup": true,
+                "RetentionDays": 30
+            }
+        
+        .. code-block:: python
+            :caption: Example: Getting and updating the tags.
+    
+            from ec2helper import Instance
+
+            i = Instance()
+            print(i.tags)
+            # {'Name': 'my-server1', 'OS': 'Ubuntu'}
+            i.tags = {'OS': 'Redhat', 'Stage': 'test'}
+            print(i.tags)
+            # {'Name': 'my-server1', 'OS': 'Redhat', 'Stage': 'test'}
+        
+        .. note::
+        
+            Although value is set as a dict you can't update a single value 
+            by something like:
+            
+            .. code-block:: python
+            
+                i.tags['OS'] = 'Redhat'
+            
+            This is because :attr:`~ec2helper.instance.Instance.tags` is a 
+            virtual property that calls to boto3_'s :func:`create_tags` 
+            function to update the tags provided with the dict you "set".
+            For the same reason only the provided tags are updated, 
+            other tags will not be deleted from the EC2 instance by this action.
+        
+        .. seealso::
+        
+            Function :func:`~ec2helper.instance.Instance.update_tags`
+                Update the instance's tags.
+            Function :func:`~ec2helper.instance.Instance.delete_tags`
+                Delete tags from the instance.
+            Function :func:`ec2helper.utils.tags_to_dict`
+                For details about the value conversion.
         """
         client = boto3.client("ec2", region_name=self.region)
         response = client.describe_tags(
@@ -121,14 +176,24 @@ class Instance(object):
 
     @tags.setter
     def tags(self, value):
-        """
-        See update_tags.
-        """
+        """Setter - see property and update_tags."""
         self.update_tags(**value)
 
     def update_tags(self, **kwargs):
         """
-        Update this instance's tags via API (from dict).
+        Update this instance's tags. Actually this does the same as setting the
+        :attr:`~ec2helper.instance.Instance.tags` attribute.
+        
+        :param kwargs: Tags to update as key value pairs.
+        
+        .. seealso::
+        
+            Attribute :attr:`~ec2helper.instance.Instance.tags`
+                Get or update the instance's tags.
+            Function :func:`~ec2helper.instance.Instance.delete_tags`
+                Delete tags from the instance.
+            Function :func:`ec2helper.utils.tags_to_dict`
+                For details about the value conversion.
         """
         client = boto3.client("ec2", region_name=self.region)
         response = client.create_tags(
@@ -139,7 +204,17 @@ class Instance(object):
 
     def delete_tags(self, *args):
         """
-        Remove the given or all tags.
+        Remove the given or all tags from this EC2 instance.
+        
+        :param string args: The keys of the tags to delete. If no tag keys 
+            are provided then all tags will be removed.
+        
+        .. seealso::
+        
+            Attribute :attr:`~ec2helper.instance.Instance.tags`
+                Get or update the instance's tags.
+            Function :func:`~ec2helper.instance.Instance.update_tags`
+                Update the instance's tags.
         """
         client = boto3.client("ec2", region_name=self.region)
         response = client.delete_tags(
@@ -181,6 +256,11 @@ class Instance(object):
     def autoscaling_protected(self):
         """
         Test if this instance is protected against scale in events.
+        
+        .. seealso::
+        
+            Attribute :attr:`~ec2helper.instance.Instance.autoscaling`
+                To get all autoscaling status informations with one API call.
         """
         data = self.autoscaling
         if data is None: return True
@@ -188,9 +268,7 @@ class Instance(object):
 
     @autoscaling_protected.setter
     def autoscaling_protected(self, value):
-        """
-        Set protection against scale in events.
-        """
+        """Setter - see property"""
         data = self.autoscaling
         if data is None: return
         client = boto3.client("autoscaling", region_name=self.region)
@@ -205,6 +283,14 @@ class Instance(object):
     def autoscaling_healthy(self):
         """
         Test if this instance is considered healthy by the autoscaling group.
+        
+        False will cause the autoscaling group to replace this instance (unless
+        it is protected, use autoscaling_force_unhealthy() to also unprotect).
+        
+        .. seealso::
+        
+            Attribute :attr:`~ec2helper.instance.Instance.autoscaling`
+                To get all autoscaling status informations with one API call.
         """
         data = self.autoscaling
         if data is None: return True
@@ -212,11 +298,7 @@ class Instance(object):
 
     @autoscaling_healthy.setter
     def autoscaling_healthy(self, value):
-        """
-        Set health status.
-        False will cause the autoscaling group to replace this instance (unless
-        it is protected, use autoscaling_force_unhealthy() to also unprotect).
-        """
+        """Setter - see property"""
         data = self.autoscaling
         if data is None: return
         client = boto3.client("autoscaling", region_name=self.region)
@@ -229,11 +311,21 @@ class Instance(object):
 
     def autoscaling_force_unhealthy(self):
         """
-        Force replacement of this instance.
-
-        Same as:
-        this_instance.autoscaling_protected = False
-        this_instance.autoscaling_healthy = False
+        Force replacement of this EC2 instance.
+        Has no effect if this is not an autoscaling instance.
+        
+        .. seealso::
+        
+            Attribute :attr:`~ec2helper.instance.Instance.autoscaling_healthy`
+                This function actually is the same as:
+                
+                .. code-block:: python
+                
+                    autoscaling_protected = False
+                    autoscaling_healthy = False
+                    
+            Attribute :attr:`~ec2helper.instance.Instance.autoscaling_protected`
+                See above.
         """
         self.autoscaling_protected = False
         self.autoscaling_healthy = False
@@ -242,6 +334,11 @@ class Instance(object):
     def autoscaling_standby(self):
         """
         Test if this instance is in standby mode.
+        
+        .. seealso::
+        
+            Attribute :attr:`~ec2helper.instance.Instance.autoscaling`
+                To get all autoscaling status informations with one API call.
         """
         data = self.autoscaling
         if data is None: return False
@@ -260,6 +357,7 @@ class Instance(object):
         ShouldDecrementDesiredCapacity=False would help, but not with
         exit_standby
         """
+        """Setter - see property"""
         data = self.autoscaling
         if data is None: return
         client = boto3.client("autoscaling", region_name=self.region)

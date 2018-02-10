@@ -150,7 +150,7 @@ def tags_to_dict(tags):
     
     .. seealso::
     
-        Function :func:`ec2helper.utils.dict_to_tags`
+        Function :func:`~ec2helper.utils.dict_to_tags`
             Reverse conversion.
     """
     return dict([(x["Key"], _parse_value(x["Value"])) for x in tags])
@@ -171,7 +171,7 @@ def dict_to_tags(tags):
     
     .. seealso::
     
-        Function :func:`ec2helper.utils.tags_to_dict`
+        Function :func:`~ec2helper.utils.tags_to_dict`
             Reverse conversion.
     """
     return [{"Key": k, "Value": _string_value(v)} for k, v in

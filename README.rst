@@ -38,16 +38,16 @@ Tag manipulation (see `tags <http://ec2helper.readthedocs
     print(i.tags)
     # {'Name': 'my-server1'}
 
-Force termination of autoscaling instance (see `autoscaling_healthy
+Force termination of autoscaling instance (see `autoscaling_force_unhealthy
 <http://ec2helper.readthedocs.io/en/latest/instance.html#ec2helper.instance
-.Instance.autoscaling_healthy>`_)
+.Instance.autoscaling_force_unhealthy>`_)
 
 .. code-block:: python
     
     from ec2helper import Instance
     
     i = Instance()
-    i.autoscaling_healthy = False
+    i.autoscaling_force_unhealthy()
 
 Protect autoscaling instance from scale in (see `autoscaling_protected
 <http://ec2helper.readthedocs.io/en/latest/instance.html#ec2helper.instance
