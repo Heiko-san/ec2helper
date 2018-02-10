@@ -3,6 +3,9 @@
 .. _boto3: https://boto3.readthedocs.io/en/latest/
 .. _ec2_metadata: https://github.com/adamchainz/ec2-metadata
 
+Common helper utilities
+=======================
+
 Module :mod:`ec2helper.utils` provides functions for use inside the
 :mod:`ec2helper` module.
 However these utilities get exposed via :mod:`ec2helper` since they may also be
@@ -14,8 +17,6 @@ useful for the user.
     
     if IS_EC2:
         print(metadata('ami_id'))
-
-|
 """
 from __future__ import unicode_literals, absolute_import
 import six

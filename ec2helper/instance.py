@@ -1,5 +1,18 @@
 # -*- coding: utf-8 -*-
 """
+The Instance class
+==================
+
+Module :mod:`ec2helper.instance` provides the 
+:class:`~ec2helper.instance.Instance` class which is the main entry point of the
+:mod:`ec2helper` module and therefore is exposed via :mod:`ec2helper`.
+
+.. code-block:: python
+    
+    from ec2helper import Instance
+
+    i = Instance()
+    i.autoscaling_protected = True
 """
 from __future__ import unicode_literals, absolute_import
 import boto3
@@ -9,12 +22,13 @@ from ec2helper.tag_lock import TagLock
 
 class Instance(object):
     """
+    instance doku
     """
 
     def __init__(self, instance_id=metadata("instance_id"),
         region=metadata("region")):
         """
-        Constructor
+        Constructor - see class documentation.
         """
         self.id = instance_id
         self.region = region
@@ -22,12 +36,16 @@ class Instance(object):
     def lock(self, lock_name, group_tag=None, group_value=None, ttl=720,
         check_health=True):
         """
-        :raises ValueError: if foo is the same as bar
+        :raises ec2helper.errors.ResourceAlreadyLocked: If another EC2 instance
+            already holds the requested lock.
+        :raises ec2helper.errors.InstanceUnhealthy: If this EC2 instance can't
+            retrieve the lock because it is considered unhealthy by autoscaling
+            group.
         """
         return TagLock(self, lock_name, group_tag, group_value, ttl,
             check_health)
 
-##### tags ####################################################################
+##### tags #####################################################################
 
     @property
     def tags(self):
@@ -47,7 +65,7 @@ class Instance(object):
     @tags.setter
     def tags(self, value):
         """
-        Same as update_tags.
+        See update_tags.
         """
         self.update_tags(**value)
 
@@ -73,7 +91,7 @@ class Instance(object):
         )
         assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
 
-##### autoscaling #############################################################
+##### autoscaling ##############################################################
 
     @property
     def autoscaling(self):
@@ -81,15 +99,18 @@ class Instance(object):
         Get autoscaling status for this instance, None if it is no autoscaling
         instance.
 
-        {
-            "AutoScalingGroupName": "hfi-amazon2-boreus-ami",
-            "AvailabilityZone": "eu-central-1b",
-            "HealthStatus": "HEALTHY",
-            "InstanceId": "i-0d2cb773a18dfa487",
-            "LaunchConfigurationName": "hfi-amazon2-boreus-ami",
-            "LifecycleState": "InService",
-            "ProtectedFromScaleIn": false
-        }
+        .. code-block:: json
+            :caption: Example value
+            
+            {
+                "AutoScalingGroupName": "my-asg",
+                "AvailabilityZone": "eu-central-1b",
+                "HealthStatus": "HEALTHY",
+                "InstanceId": "i-0d2cb773a18dfa487",
+                "LaunchConfigurationName": "my-lc",
+                "LifecycleState": "InService",
+                "ProtectedFromScaleIn": false
+            }
         """
         client = boto3.client("autoscaling", region_name=self.region)
         response = client.describe_auto_scaling_instances(

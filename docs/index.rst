@@ -1,14 +1,9 @@
-.. include README.rst for common introduction
 .. include:: ../README.rst
 
-.. _main_document:
+.. toctree::
+   :hidden:
 
-Module contents and documentation
----------------------------------
-
-.. toctree::                                                                    
-   :titlesonly:
-                                                                                
+   instance
    utils
-
-.. include:: menu.rst
+   errors
+   indices

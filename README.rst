@@ -13,7 +13,7 @@ Project links
 -------------
 
 * Sources: https://github.com/Heiko-san/ec2helper
-* Documentation: http://ec2helper.readthedocs.io/en/latest/#main-document
+* Documentation: http://ec2helper.readthedocs.io/en/latest/
 
 Examples
 --------

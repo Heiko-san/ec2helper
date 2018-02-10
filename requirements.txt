@@ -1,14 +1,5 @@
+boto3
 ec2-metadata
+python-dateutil
 requests
 six
-python-dateutil
-boto3
-botocore
-cached-property
-certifi
-chardet
-docutils
-idna
-jmespath
-s3transfer
-urllib3

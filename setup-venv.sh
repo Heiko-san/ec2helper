@@ -3,5 +3,5 @@
 virtualenv venv
 source venv/bin/activate
 pip install -r requirements.txt
-pip install sphinx
+pip install sphinx_rtd_theme sphinx
 deactivate
