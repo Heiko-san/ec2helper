@@ -49,6 +49,8 @@ class Instance(object):
         :attr:`lock_name` as a tag at this instance to indicate that it holds
         the lock. If another instance of the lock group already holds a still
         valid lock raise :class:`~ec2helper.errors.ResourceAlreadyLocked`.
+        This context guard also includes
+        :func:`~ec2helper.instance.Instance.autoscaling_protection`.
         
         :param string lock_name: The name of the lock to retrieve.
                     
@@ -320,6 +322,8 @@ class Instance(object):
         
             Attribute :attr:`~ec2helper.instance.Instance.autoscaling`
                 To get all autoscaling status informations with one API call.
+            Function :func:`~ec2helper.instance.Instance.autoscaling_protection`
+                Scale in protection as a context guard.
         """
         data = self.autoscaling
         if data is None: return True
@@ -339,6 +343,36 @@ class Instance(object):
         assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
 
     def autoscaling_protection(self):
+        """
+        Protect the instance from scale in inside the with-block. Has no effect
+        if this EC2 instance is not a member of an autoscaling group. Resets the
+        former state afterward.
+        
+        :return: The AutoscalingProtection context guard.
+        :rtype: :class:`ec2helper.as_protection.AutoscalingProtection`
+        
+        .. code-block:: python
+    
+            from ec2helper import Instance
+    
+            i = Instance()
+            with i.autoscaling_protection() as asp:                                         
+                print(i.autoscaling_protected)
+                print('former state: ' + asp.autoscaling['ProtectedFromScaleIn']
+                time.sleep(10)                                                              
+            print(i.autoscaling['ProtectedFromScaleIn'])
+        
+        .. code-block:: none
+            :caption: AWS API permissions
+            
+            autoscaling:DescribeAutoScalingInstances
+            autoscaling:SetInstanceProtection
+        
+        .. seealso::
+        
+            Attribute :attr:`~ec2helper.instance.Instance.autoscaling_protected`
+                Get or set protection as a property.
+        """
         return AutoscalingProtection(self)
 
     @property

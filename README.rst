@@ -87,6 +87,21 @@ Protect autoscaling instance from scale in (see `autoscaling_protected
     i = Instance()
     i.autoscaling_protected = True
 
+Protect autoscaling instance from scale in using a context guard (see 
+`autoscaling_protection <http://ec2helper.readthedocs.io/en/latest/instance
+.html#ec2helper.instance.Instance.autoscaling_protection>`_)
+
+.. code-block:: python
+    
+    from ec2helper import Instance
+    
+    i = Instance()
+    with i.autoscaling_protection() as asp:                                         
+        print(i.autoscaling_protected)
+        print('former state: ' + asp.autoscaling['ProtectedFromScaleIn']
+        time.sleep(10)                                                              
+    print(i.autoscaling['ProtectedFromScaleIn'])                                              
+
 Lock autoscaling instance for task that should only run on a single instance
 (see `lock <http://ec2helper.readthedocs.io/en/latest/instance
 .html#ec2helper.instance.Instance.lock>`_)
