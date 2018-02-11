@@ -34,6 +34,7 @@ For all actions.
                     "autoscaling:SetInstanceProtection",
                     "cloudwatch:PutMetricData",
                     "ec2:DescribeInstances",
+                    "ec2:DescribeVolumes",
                     "ec2:DeleteTags",
                     "ec2:DescribeTags",
                     "ec2:CreateTags"

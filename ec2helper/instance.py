@@ -607,7 +607,42 @@ class Instance(object):
 
     @property
     def volumes(self):
-        # ec2:DescribeVolumes
+        """
+        Get this EC2 instance's volumes.
+
+        This attribute is readonly.
+        
+        .. code-block:: json
+            :caption: Example value
+
+            {
+                "vol-0e3272af46c7d5d1e": {
+                    "Attachment": {
+                        "AttachTime": "2018-02-07T16:07:54+00:00 (<type 'datetime.datetime'>)", 
+                        "DeleteOnTermination": true, 
+                        "Device": "/dev/xvda", 
+                        "InstanceId": "i-0d2cb773a18dfa487", 
+                        "Root": true, 
+                        "State": "attached", 
+                        "VolumeId": "vol-0e3272af46c7d5d1e"
+                    }, 
+                    "AvailabilityZone": "eu-central-1b", 
+                    "CreateTime": "2018-02-07T16:07:54.615000+00:00 (<type 'datetime.datetime'>)", 
+                    "Encrypted": false, 
+                    "Iops": 100, 
+                    "Size": 8, 
+                    "SnapshotId": "snap-036167fc518855549", 
+                    "State": "in-use", 
+                    "VolumeId": "vol-0e3272af46c7d5d1e", 
+                    "VolumeType": "gp2"
+                }
+            }
+        
+        .. code-block:: none
+            :caption: AWS API permissions
+
+            ec2:DescribeVolumes
+        """
         client = boto3.client("ec2", region_name=self.region)
         paginator = client.get_paginator('describe_volumes')
         volumes = dict()
