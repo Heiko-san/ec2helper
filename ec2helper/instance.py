@@ -19,6 +19,7 @@ Module :mod:`ec2helper.instance` provides the
 from __future__ import unicode_literals, absolute_import
 import six
 import boto3
+import requests
 from ec2helper.utils import IS_EC2, metadata, tags_to_dict, dict_to_tags
 from ec2helper.tag_lock import TagLock
 from ec2helper.as_protection import AutoscalingProtection
@@ -529,16 +530,16 @@ class Instance(object):
         """
         boto3_'s :func:`~client.put_metric_data` with some defaults for this EC2
         instance.
-        
+
         :param string metric_name: The name of the metric to put data to.
         :param float value: The value to upload.
         :param string unit: The unit of the value (default is "Count").
         :param string namespace: The namespace (default is "AWS/EC2").
         :param dimensions: A list of dimensions as required by boto3_'s
-            :func:`~client.put_metric_data` or a dict that will be converted to 
+            :func:`~client.put_metric_data` or a dict that will be converted to
             such a list (default is 'InstanceId' and this instance's id).
         :type dimensions: list or dict
-        :param string dimension_from_tag: Instead of :attr:`dimensions` use 
+        :param string dimension_from_tag: Instead of :attr:`dimensions` use
             the given tag key and the value found for that tag as a dimension
             pair.
         :param bool add_instance_dimension: If :attr:`dimension_from_tag` or
@@ -546,7 +547,7 @@ class Instance(object):
             this instance's id to the list of dimensions.
         :raises ec2helper.errors.TagNotFound: If :attr:`dimension_from_tag` is
             used and the tag can't be found on this EC2 instance.
-        
+
         .. code-block:: python
             :caption: Example
 
@@ -560,9 +561,9 @@ class Instance(object):
                 dimension_from_tag='OS')
             # The JobsDone Metric for this instance id and by availability zone
             i.put_metric_data('JobsDone', 138,
-                dimensions={'AvailabilityZone':'eu-central-1b'}, 
+                dimensions={'AvailabilityZone':'eu-central-1b'},
                 add_instance_dimension=True)
-        
+
         .. code-block:: none
             :caption: AWS API permissions
 
@@ -595,9 +596,32 @@ class Instance(object):
             Namespace=namespace,
             MetricData=[{
                 'MetricName': metric_name,
-                'Dimensions': dimensions, 
+                'Dimensions': dimensions,
                 'Value': value,
                 'Unit': unit
             }]
         )
         assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+
+    ##### ebs #####
+
+    @property
+    def volumes(self):
+        # ec2:DescribeVolumes
+        client = boto3.client("ec2", region_name=self.region)
+        paginator = client.get_paginator('describe_volumes')
+        volumes = dict()
+        for page in paginator.paginate(
+            Filters=[{
+                'Name': 'attachment.instance-id',
+                'Values': [self.id]
+            }]
+        ):
+            for volume in page["Volumes"]:
+                vid = volume["VolumeId"]
+                volume["Attachment"] = sorted(volume["Attachments"])[-1]
+                volume["Attachment"]["Root"] = True if volume["Attachment"][
+                    "Device"] == "/dev/xvda" else False
+                del volume["Attachments"]
+                volumes[vid] = volume
+        return volumes
