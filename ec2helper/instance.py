@@ -618,7 +618,7 @@ class Instance(object):
             {
                 "vol-0e3272af46c7d5d1e": {
                     "Attachment": {
-                        "AttachTime": "2018-02-07T16:07:54+00:00 (<type 'datetime.datetime'>)", 
+                        "AttachTime": "2018-02-07T16:07:54+00:00", 
                         "DeleteOnTermination": true, 
                         "Device": "/dev/xvda", 
                         "InstanceId": "i-0d2cb773a18dfa487", 
@@ -627,7 +627,7 @@ class Instance(object):
                         "VolumeId": "vol-0e3272af46c7d5d1e"
                     }, 
                     "AvailabilityZone": "eu-central-1b", 
-                    "CreateTime": "2018-02-07T16:07:54.615000+00:00 (<type 'datetime.datetime'>)", 
+                    "CreateTime": "2018-02-07T16:07:54.615000+00:00", 
                     "Encrypted": false, 
                     "Iops": 100, 
                     "Size": 8, 
