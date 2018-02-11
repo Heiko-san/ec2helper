@@ -47,3 +47,10 @@ class InstanceUnhealthy(ResourceLockingError):
     group.
     """
     pass
+
+
+class TagNotFound(Ec2HelperError):
+    """
+    Raised if a requested tag is not found.
+    """
+    pass

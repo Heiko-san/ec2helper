@@ -93,6 +93,7 @@ Protect autoscaling instance from scale in using a context guard (see
 
 .. code-block:: python
     
+    import time
     from ec2helper import Instance
     
     i = Instance()
