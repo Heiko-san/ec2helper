@@ -6,6 +6,6 @@
    instance
    get_instances
    utils
-   errors
    tag_lock
+   errors
    indices
