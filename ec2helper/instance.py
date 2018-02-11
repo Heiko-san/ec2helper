@@ -20,6 +20,7 @@ from __future__ import unicode_literals, absolute_import
 import boto3
 from ec2helper.utils import IS_EC2, metadata, tags_to_dict, dict_to_tags
 from ec2helper.tag_lock import TagLock
+from ec2helper.as_protection import AutoscalingProtection
 
 
 class Instance(object):
@@ -336,6 +337,9 @@ class Instance(object):
             ProtectedFromScaleIn=bool(value)
         )
         assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+
+    def autoscaling_protection(self):
+        return AutoscalingProtection(self)
 
     @property
     def autoscaling_healthy(self):
