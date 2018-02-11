@@ -7,4 +7,5 @@
    get_instances
    utils
    errors
+   tag_lock
    indices

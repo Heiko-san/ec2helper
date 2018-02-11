@@ -34,13 +34,13 @@ class Instance(object):
     """
 
     def __init__(self, instance_id=metadata("instance_id"),
-        region=metadata("region")):
+                 region=metadata("region")):
         """Constructor - see class docu."""
         self.id = instance_id
         self.region = region
 
     def lock(self, lock_name, group_tag=None, group_value=None, ttl=720,
-        check_health=True):
+             check_health=True):
         """
         Context guard that acts as a locking system accross multiple EC2 
         instances selected by autoscaling group, tag key or tag key-value 
@@ -72,7 +72,7 @@ class Instance(object):
             .. note::
             
                 The lock tag will be removed after 
-                with-block is left but an additional time to live will be set as 
+                with-block is left but an additional time to live will be set as
                 the lock tags value (ISO timestring, UTC) in case anything goes 
                 wrong, so set this longer then your job will ever take to run, 
                 but shorter then the absolute neccessary repetition interval.
@@ -122,9 +122,9 @@ class Instance(object):
                 For details about ISO timestring tag values.
         """
         return TagLock(self, lock_name, group_tag, group_value, ttl,
-            check_health)
+                       check_health)
 
-##### tags #####################################################################
+    ##### tags #####
 
     @property
     def tags(self):
@@ -255,7 +255,7 @@ class Instance(object):
         )
         assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
 
-##### autoscaling ##############################################################
+    ##### autoscaling #####
 
     @property
     def autoscaling(self):
@@ -462,11 +462,11 @@ class Instance(object):
         if data is None: return
         raise NotImplementedError()
         client = boto3.client("autoscaling", region_name=self.region)
-        #data["LifecycleState"] == "InService"
+        # data["LifecycleState"] == "InService"
         if value:
-            #response = client.put_scaling_policy(
+            # response = client.put_scaling_policy(
             #    AutoScalingGroupName=data["AutoScalingGroupName"],
-            #)
+            # )
             response = client.enter_standby(
                 InstanceIds=[self.id],
                 AutoScalingGroupName=data["AutoScalingGroupName"],

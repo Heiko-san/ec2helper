@@ -69,11 +69,11 @@ def get_instances_by_tag(key, value=None, region=metadata("region")):
     if value is None:
         tag_filter = {"Name": "tag-key", "Values": [key]}
     else:
-        tag_filter = {"Name": "tag:"+key, "Values": [value]}
+        tag_filter = {"Name": "tag:" + key, "Values": [value]}
     paginator = client.get_paginator("describe_instances")
     instances = list()
     for page in paginator.paginate(
-        Filters=[tag_filter]
+            Filters=[tag_filter]
     ):
         instances.extend(
             [i for r in page["Reservations"] for i in r["Instances"]]
@@ -118,7 +118,7 @@ def get_instance_tags_by_tag(key, value=None, region=metadata("region")):
             For details about tag value conversion.
     """
     return dict([(x["InstanceId"], x["Tags"]) for x
-        in get_instances_by_tag(key, value, region)])
+                 in get_instances_by_tag(key, value, region)])
 
 
 def get_instance_status_by_autoscaling_group(asg, region=metadata("region")):
@@ -206,7 +206,7 @@ def get_instances_by_autoscaling_group(asg, region=metadata("region")):
     paginator = client.get_paginator("describe_instances")
     instances = list()
     for page in paginator.paginate(
-        InstanceIds=[x["InstanceId"] for x in asg_instances]
+            InstanceIds=[x["InstanceId"] for x in asg_instances]
     ):
         instances.extend(
             [i for r in page["Reservations"] for i in r["Instances"]]
@@ -251,4 +251,4 @@ def get_instance_tags_by_autoscaling_group(asg, region=metadata("region")):
             For details about tag value conversion.
     """
     return dict([(x["InstanceId"], x["Tags"]) for x
-        in get_instances_by_autoscaling_group(asg, region)])
+                 in get_instances_by_autoscaling_group(asg, region)])

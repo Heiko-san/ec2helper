@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-TagLock class to create a tag based lock accross all instances of a given
-group.
+The TagLock context guard
+=========================
+
+This class is not meant to be used directly, use
+:func:`ec2helper.instance.Instance.lock` instead.
+The properties of this context guard are readonly and can be accessed inside 
+the with-block.
 """
 from __future__ import unicode_literals, absolute_import
 from ec2helper.get_instances import get_instance_tags_by_tag, \
@@ -14,18 +19,45 @@ from dateutil import tz
 
 class TagLock(object):
     """
+    For more details about the locking mechanism and the parameters see
+    :func:`ec2helper.instance.Instance.lock`.
+        
+    :param instance: The instance for this lock.
+    :param lock_name: The name of the lock.
+    :param group_tag: The tag key of the lock group.
+    :param group_value: The tag value of the lock group.
+    :param ttl: The time in minutes the lock should be valid.
+    :param check_health: If true check health before locking.
     """
     _locked = False
 
     def __init__(self, instance, lock_name, group_tag, group_value, ttl,
                  check_health):
-        """constructor"""
+        """Constructor - see class docu."""
         self._instance = instance
+        #: The :code:`lock_name` parameter.
         self.name = lock_name
+        #: The :code:`group_tag` parameter.
         self.group_tag = group_tag
+        #: The :code:`group_value` parameter.
         self.group_value = group_value
+        #: The :code:`ttl` parameter.
         self.ttl = ttl
+        #: The :code:`check_health` parameter.
         self.check_health = check_health
+        #: The autoscaling status data as returned by
+        #: :attr:`ec2helper.instance.Instance.autoscaling` at the time the 
+        #: lock was set.
+        self.autoscaling = None
+        #: The instances and their tags of this lock group as returned by
+        #: :func:`ec2helper.get_instances.get_instance_tags_by_tag` or
+        #: :func:`ec2helper.get_instances.get_instance_tags_by_autoscaling_group`
+        #: at the time the lock was set.
+        self.group_instances = None
+        #: :py:mod:`datetime` when the lock was set.
+        self.time = None
+        #: :py:mod:`datetime` when the lock expires (after :code:`ttl` minutes).
+        self.end_time = None
 
     def __enter__(self):
         """

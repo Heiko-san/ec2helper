@@ -13,11 +13,13 @@ Exception classes
                +-- InstanceUnhealthy
 """
 
+
 class Ec2HelperError(Exception):
     """
     Common base class for all exceptions raised by :mod:`ec2helper`.
     """
     pass
+
 
 class ResourceLockingError(Ec2HelperError):
     """
@@ -27,6 +29,7 @@ class ResourceLockingError(Ec2HelperError):
     """
     pass
 
+
 class ResourceAlreadyLocked(ResourceLockingError):
     """
     Raised by :class:`~ec2helper.instance.Instance`'s
@@ -34,6 +37,7 @@ class ResourceAlreadyLocked(ResourceLockingError):
     instance already holds the requested lock.
     """
     pass
+
 
 class InstanceUnhealthy(ResourceLockingError):
     """
