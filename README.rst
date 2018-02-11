@@ -32,6 +32,7 @@ For all actions.
                     "autoscaling:DescribeAutoScalingInstances",
                     "autoscaling:SetInstanceHealth",
                     "autoscaling:SetInstanceProtection",
+                    "cloudwatch:PutMetricData",
                     "ec2:DescribeInstances",
                     "ec2:DeleteTags",
                     "ec2:DescribeTags",
@@ -122,3 +123,21 @@ Lock autoscaling instance for task that should only run on a single instance
     except ResourceLockingError:
         print("Could not retrieve lock!")
 
+
+Upload cloudwatch metrics for this instance (see `put_metric_data
+<http://ec2helper.readthedocs.io/en/latest/instance.html#ec2helper.instance
+.Instance.put_metric_data>`_)
+
+.. code-block:: python
+
+    from ec2helper import Instance
+
+    i = Instance()
+    # Count unit for instance id
+    i.put_metric_data('JobsDone', 138)
+    # Metric with another unit by tags (here: BootTime by OS)
+    i.put_metric_data('BootTime', 35.7, 'Seconds', dimension_from_tag='OS')
+    # The JobsDone Metric for this instance id and by availability zone
+    i.put_metric_data('JobsDone', 138,
+        dimensions={'AvailabilityZone':'eu-central-1b'}, 
+        add_instance_dimension=True)

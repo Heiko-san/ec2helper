@@ -524,8 +524,50 @@ class Instance(object):
     ##### cloudwatch #####
 
     def put_metric_data(self, metric_name, value, unit='Count',
-        namespace='AWS/EC2', dimensions=None, dimension_from_tag=None):
+        namespace='AWS/EC2', dimensions=None, dimension_from_tag=None,
+        add_instance_dimension=False):
+        """
+        boto3_'s :func:`~client.put_metric_data` with some defaults for this EC2
+        instance.
+        
+        :param string metric_name: The name of the metric to put data to.
+        :param float value: The value to upload.
+        :param string unit: The unit of the value (default is "Count").
+        :param string namespace: The namespace (default is "AWS/EC2").
+        :param dimensions: A list of dimensions as required by boto3_'s
+            :func:`~client.put_metric_data` or a dict that will be converted to 
+            such a list (default is 'InstanceId' and this instance's id).
+        :type dimensions: list or dict
+        :param string dimension_from_tag: Instead of :attr:`dimensions` use 
+            the given tag key and the value found for that tag as a dimension
+            pair.
+        :param bool add_instance_dimension: If :attr:`dimension_from_tag` or
+            :attr:`dimensions` is used, :code:`True` will add 'InstanceId' and
+            this instance's id to the list of dimensions.
+        :raises ec2helper.errors.TagNotFound: If :attr:`dimension_from_tag` is
+            used and the tag can't be found on this EC2 instance.
+        
+        .. code-block:: python
+            :caption: Example
 
+            from ec2helper import Instance
+
+            i = Instance()
+            # Count unit for instance id
+            i.put_metric_data('JobsDone', 138)
+            # Metric with another unit by tags (here: BootTime by OS)
+            i.put_metric_data('BootTime', 35.7, 'Seconds',
+                dimension_from_tag='OS')
+            # The JobsDone Metric for this instance id and by availability zone
+            i.put_metric_data('JobsDone', 138,
+                dimensions={'AvailabilityZone':'eu-central-1b'}, 
+                add_instance_dimension=True)
+        
+        .. code-block:: none
+            :caption: AWS API permissions
+
+            cloudwatch:PutMetricData
+        """
         if dimension_from_tag:
             tags = self.tags
             if dimension_from_tag in tags:
@@ -543,6 +585,11 @@ class Instance(object):
         elif isinstance(dimensions, dict):
             dimensions = [{"Name": k, "Value": v} for k, v in six.iteritems(
                          dimensions)]
+        if add_instance_dimension:
+            dimensions.append({
+                'Name': 'InstanceId',
+                'Value': self.id
+            })
         client = boto3.client("cloudwatch", region_name=self.region)
         response = client.put_metric_data(
             Namespace=namespace,
