@@ -15,6 +15,33 @@ Project links
 * Sources: https://github.com/Heiko-san/ec2helper
 * Documentation: http://ec2helper.readthedocs.io/en/latest/
 
+Required AWS API permissions
+----------------------------
+
+For all actions.
+
+.. code-block:: json
+    
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "autoscaling:DescribeAutoScalingGroups",
+                    "autoscaling:DescribeAutoScalingInstances",
+                    "autoscaling:SetInstanceHealth",
+                    "autoscaling:SetInstanceProtection",
+                    "ec2:DescribeInstances",
+                    "ec2:DeleteTags",
+                    "ec2:DescribeTags",
+                    "ec2:CreateTags"
+                ],
+                "Resource": "*"
+            }
+        ]
+    }
+
 Examples
 --------
 

@@ -13,6 +13,18 @@ def get_instances_by_tag(key, value=None, region=metadata("region")):
     tag-key-value combination and return the whole data as returned by the API,
     only that the list is flattened, removing the reservation level and tags
     are converted to dict.
+    
+    .. code-block:: none
+            :caption: AWS API permissions
+            
+            autoscaling:DescribeAutoScalingGroups
+            autoscaling:DescribeAutoScalingInstances
+            autoscaling:SetInstanceHealth
+            autoscaling:SetInstanceProtection
+            ec2:DescribeInstances
+            ec2:DeleteTags
+            ec2:DescribeTags
+            ec2:CreateTags
     """
     client = boto3.client("ec2", region_name=region)
     if value is None:

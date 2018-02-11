@@ -24,7 +24,13 @@ from ec2helper.tag_lock import TagLock
 
 class Instance(object):
     """
-    instance doku
+    Interact with an EC2 instance. By default the instance the script is 
+    runnning on. But there is also the possibility to set id and region.
+    
+    :param string instance_id: The instance id, on an EC2 instance it 
+        defaults to its id.
+    :param string region: The region to make the API calls to, on an EC2 
+        instance it defaults to its region.
     """
 
     def __init__(self, instance_id=metadata("instance_id"),
@@ -100,6 +106,16 @@ class Instance(object):
                 except ResourceLockingError:
                     print("Could not retrieve lock!")
     
+        .. code-block:: none
+            :caption: AWS API permissions
+            
+            autoscaling:DescribeAutoScalingGroups
+            autoscaling:DescribeAutoScalingInstances
+            autoscaling:SetInstanceProtection
+            ec2:DescribeInstances
+            ec2:DeleteTags
+            ec2:CreateTags
+        
         .. seealso::
     
             Function :func:`ec2helper.utils.tags_to_dict`
@@ -155,6 +171,12 @@ class Instance(object):
             For the same reason only the provided tags are updated, 
             other tags will not be deleted from the EC2 instance by this action.
         
+        .. code-block:: none
+            :caption: AWS API permissions
+            
+            ec2:DescribeTags
+            ec2:CreateTags
+        
         .. seealso::
         
             Function :func:`~ec2helper.instance.Instance.update_tags`
@@ -186,6 +208,11 @@ class Instance(object):
         
         :param kwargs: Tags to update as key value pairs.
         
+        .. code-block:: none
+            :caption: AWS API permissions
+            
+            ec2:CreateTags
+        
         .. seealso::
         
             Attribute :attr:`~ec2helper.instance.Instance.tags`
@@ -209,6 +236,11 @@ class Instance(object):
         :param string args: The keys of the tags to delete. If no tag keys 
             are provided then all tags will be removed.
         
+        .. code-block:: none
+            :caption: AWS API permissions
+            
+            ec2:DeleteTags
+        
         .. seealso::
         
             Attribute :attr:`~ec2helper.instance.Instance.tags`
@@ -228,8 +260,10 @@ class Instance(object):
     @property
     def autoscaling(self):
         """
-        Get autoscaling status for this instance, None if it is no autoscaling
-        instance.
+        Get autoscaling status for this instance, :code:`None` if it is no
+        autoscaling instance.
+        
+        This attribute is readonly.
 
         .. code-block:: json
             :caption: Example value
@@ -243,6 +277,11 @@ class Instance(object):
                 "LifecycleState": "InService",
                 "ProtectedFromScaleIn": false
             }
+        
+        .. code-block:: none
+            :caption: AWS API permissions
+            
+            autoscaling:DescribeAutoScalingInstances
         """
         client = boto3.client("autoscaling", region_name=self.region)
         response = client.describe_auto_scaling_instances(
@@ -255,7 +294,26 @@ class Instance(object):
     @property
     def autoscaling_protected(self):
         """
-        Test if this instance is protected against scale in events.
+        Bool value that indicates if this instance is protected from scale in.
+        
+        This attribute can also be set.
+        
+        If this instance is not a member of an autoscaling group this 
+        attribute ignores input and always returns :code:`True`.
+        
+        .. code-block:: python
+            :caption: Example
+    
+            from ec2helper import Instance
+
+            i = Instance()
+            i.autoscaling_protected = True
+        
+        .. code-block:: none
+            :caption: AWS API permissions
+            
+            autoscaling:DescribeAutoScalingInstances
+            autoscaling:SetInstanceProtection
         
         .. seealso::
         
@@ -282,15 +340,42 @@ class Instance(object):
     @property
     def autoscaling_healthy(self):
         """
-        Test if this instance is considered healthy by the autoscaling group.
+        Bool value that indicates if this instance is considered healthy by its
+        autoscaling group.
         
-        False will cause the autoscaling group to replace this instance (unless
-        it is protected, use autoscaling_force_unhealthy() to also unprotect).
+        This attribute can also be set and will cause the instance to terminate
+        if you set it to False.
+        
+        If this instance is not a member of an autoscaling group this 
+        attribute ignores input and always returns :code:`True`.
+        
+        .. code-block:: python
+            :caption: Example
+    
+            from ec2helper import Instance
+
+            i = Instance()
+            i.autoscaling_healthy = False
+        
+        .. note::
+        
+            If this instance is protected from scale in :code:`False` will not
+            terminate it, to force termination use 
+            :func:`~ec2helper.instance.Instance.autoscaling_force_unhealthy` or
+            remove protection before setting this attribute.
+        
+        .. code-block:: none
+            :caption: AWS API permissions
+            
+            autoscaling:DescribeAutoScalingInstances
+            autoscaling:SetInstanceHealth
         
         .. seealso::
         
             Attribute :attr:`~ec2helper.instance.Instance.autoscaling`
                 To get all autoscaling status informations with one API call.
+            Function :func:`~ec2helper.instance.Instance.autoscaling_force_unhealthy`
+                To force termination.
         """
         data = self.autoscaling
         if data is None: return True
@@ -314,6 +399,12 @@ class Instance(object):
         Force replacement of this EC2 instance.
         Has no effect if this is not an autoscaling instance.
         
+        .. code-block:: none
+            :caption: AWS API permissions
+            
+            autoscaling:SetInstanceHealth
+            autoscaling:SetInstanceProtection
+        
         .. seealso::
         
             Attribute :attr:`~ec2helper.instance.Instance.autoscaling_healthy`
@@ -333,7 +424,17 @@ class Instance(object):
     @property
     def autoscaling_standby(self):
         """
-        Test if this instance is in standby mode.
+        Bool value that indicates if this instance is in standby mode.
+        
+        Setter is not implemented yet.
+        
+        If this instance is not a member of an autoscaling group this 
+        attribute ignores input and always returns :code:`False`.
+        
+        .. code-block:: none
+            :caption: AWS API permissions
+            
+            autoscaling:DescribeAutoScalingInstances
         
         .. seealso::
         
@@ -357,9 +458,9 @@ class Instance(object):
         ShouldDecrementDesiredCapacity=False would help, but not with
         exit_standby
         """
-        """Setter - see property"""
         data = self.autoscaling
         if data is None: return
+        raise NotImplementedError()
         client = boto3.client("autoscaling", region_name=self.region)
         #data["LifecycleState"] == "InService"
         if value:

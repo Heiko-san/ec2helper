@@ -14,28 +14,6 @@ from dateutil import tz
 
 class TagLock(object):
     """
-    Create a tag based lock accross all instances of a given group, group can
-    be selected by autoscaling group of this instance (default), by tag-key
-    (group_tag) or tag-key and tag-value combination (group_tag, group_value).
-    Lock is released after with-block is left, but also has a validity timeout
-    (ttl=1800) in minutes as a fallback, adjust if you expect the process to
-    run longer.
-    Lock will not be assigned to an unhealthy autoscaling instance by default
-    (check_health=True), disable to ignore health and lifecycle state.
-    If this instance can't be locked a ResourceLockingError will be raised
-    (ResourceAlreadyLocked or InstanceUnhealthy).
-
-    import time
-    from ec2helper import Instance
-    from ec2helper.errors import *
-    i = Instance()
-    try:                                                                            
-        with i.lock("MyLockTag") as lock:                                           
-            print("start with-block with tag lock: " + lock.name)
-            time.sleep(10)                                                          
-            print("end with-block with tag lock: " + lock.name)                     
-    except ResourceLockingError:                                                    
-        print("Could not retrieve lock")
     """
     _locked = False
 
