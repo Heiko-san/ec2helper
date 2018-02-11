@@ -4,6 +4,7 @@
    :hidden:
 
    instance
+   get_instances
    utils
    errors
    indices
