@@ -568,6 +568,7 @@ class Instance(object):
             :caption: AWS API permissions
 
             cloudwatch:PutMetricData
+            ec2:DescribeTags
 
         .. seealso::
 
@@ -638,6 +639,7 @@ class Instance(object):
             :caption: AWS API permissions
 
             cloudwatch:PutMetricData
+            ec2:DescribeTags
 
         .. seealso::
 

@@ -21,7 +21,7 @@ Required AWS API permissions
 For all actions.
 
 .. code-block:: json
-    
+
     {
         "Version": "2012-10-17",
         "Statement": [
@@ -52,7 +52,7 @@ Tag manipulation (see `tags <http://ec2helper.readthedocs
 
 
 .. code-block:: python
-    
+
     from ec2helper import Instance
 
     i = Instance()
@@ -72,9 +72,9 @@ Force termination of autoscaling instance (see `autoscaling_force_unhealthy
 .Instance.autoscaling_force_unhealthy>`_)
 
 .. code-block:: python
-    
+
     from ec2helper import Instance
-    
+
     i = Instance()
     i.autoscaling_force_unhealthy()
 
@@ -83,27 +83,27 @@ Protect autoscaling instance from scale in (see `autoscaling_protected
 .Instance.autoscaling_protected>`_)
 
 .. code-block:: python
-    
+
     from ec2helper import Instance
-    
+
     i = Instance()
     i.autoscaling_protected = True
 
-Protect autoscaling instance from scale in using a context guard (see 
+Protect autoscaling instance from scale in using a context guard (see
 `autoscaling_protection <http://ec2helper.readthedocs.io/en/latest/instance
 .html#ec2helper.instance.Instance.autoscaling_protection>`_)
 
 .. code-block:: python
-    
+
     import time
     from ec2helper import Instance
-    
+
     i = Instance()
-    with i.autoscaling_protection() as asp:                                         
+    with i.autoscaling_protection() as asp:
         print(i.autoscaling_protected)
         print('former state: ' + asp.autoscaling['ProtectedFromScaleIn']
-        time.sleep(10)                                                              
-    print(i.autoscaling['ProtectedFromScaleIn'])                                              
+        time.sleep(10)
+    print(i.autoscaling['ProtectedFromScaleIn'])
 
 Lock autoscaling instance for task that should only run on a single instance
 (see `lock <http://ec2helper.readthedocs.io/en/latest/instance
@@ -114,7 +114,7 @@ Lock autoscaling instance for task that should only run on a single instance
     import time
     from ec2helper import Instance
     from ec2helper.errors import ResourceLockingError
-               
+
     i = Instance()
     try:
         with i.lock("MyLockTag") as lock:
@@ -140,5 +140,30 @@ Upload cloudwatch metrics for this instance (see `put_metric_data
     i.put_metric_data('BootTime', 35.7, 'Seconds', dimension_from_tag='OS')
     # The JobsDone Metric for this instance id and by availability zone
     i.put_metric_data('JobsDone', 138,
-        dimensions={'AvailabilityZone':'eu-central-1b'}, 
+        dimensions={'AvailabilityZone':'eu-central-1b'},
         add_instance_dimension=True)
+
+Memory and disk space cloudwatch metrics + memory average for autoscaling group
+(see `put_metric_data_ec2_group <http://ec2helper.readthedocs
+.io/en/latest/instance.html#ec2helper.instance.Instance
+.put_metric_data_ec2_group>`_)
+
+.. code-block:: python
+
+    import psutil
+    from ec2helper import Instance
+
+    GROUPTAG="aws:autoscaling:groupName"
+
+    i = Instance()
+
+    mem = psutil.virtual_memory()
+    i.put_metric_data_ec2_group(GROUPTAG, "MemoryUtilization",
+                                mem.percent, "Percent")
+
+    for part in psutil.disk_partitions():
+        mountpoint = part.mountpoint
+        usage = psutil.disk_usage(mountpoint)
+        i.put_metric_data("DiskUtilization", usage.percent, "Percent",
+                            dimensions={"MountPoint": mountpoint},
+                            add_instance_dimension=True)
