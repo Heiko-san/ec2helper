@@ -568,6 +568,11 @@ class Instance(object):
             :caption: AWS API permissions
 
             cloudwatch:PutMetricData
+
+        .. seealso::
+
+            Function :func:`~ec2helper.instance.Instance.put_metric_data_ec2_group`
+                Both, by instance id and tag at the same time.
         """
         if dimension_from_tag:
             tags = self.tags
@@ -602,6 +607,46 @@ class Instance(object):
             }]
         )
         assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+
+    def put_metric_data_ec2_group(self, group_tag, metric_name, value,
+        unit='Count'):
+        """
+        Like :func:`~ec2helper.instance.Instance.put_metric_data` but puts the
+        provided data to two separate dimensions, "InstanceId" and the provided
+        :attr:`group_tag`. The namespace will be "AWS/EC2", the dimension
+        values will be this instances id and the value of the provided tag.
+
+        :param string group_tag: The tag to use for grouping the metric data
+            accross several instances.
+        :param string metric_name: The name of the metric to put data to.
+        :param float value: The value to upload.
+        :param string unit: The unit of the value (default is "Count").
+        :raises ec2helper.errors.TagNotFound: If :attr:`group_tag` can't be
+            found as a tag on this EC2 instance. At the time the exception is
+            raised the metric data was already saved for "InstanceId" dimension.
+        
+        .. code-block:: python
+            :caption: Example: Put data by instance id and autoscaling group
+
+            from ec2helper import Instance
+                                                                                
+            i = Instance()
+            i.put_metric_data_ec2_group("aws:autoscaling:groupName",
+                "MemoryUtilization", 35.6, "Percent")
+
+        .. code-block:: none
+            :caption: AWS API permissions
+
+            cloudwatch:PutMetricData
+
+        .. seealso::
+
+            Function :func:`~ec2helper.instance.Instance.put_metric_data`
+                For a single, configurable put_metric_data request.
+        """
+        self.put_metric_data(metric_name, value, unit)
+        self.put_metric_data(metric_name, value, unit,
+            dimension_from_tag=group_tag)
 
     ##### ebs #####
 
