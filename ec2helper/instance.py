@@ -736,16 +736,16 @@ class Instance(object):
             for volume_id in all_volumes:
                 if all_volumes[volume_id]["Attachment"]["Device"] in volumes:
                     backup_volumes[volume_id] = all_volumes[volume_id]
-        devices = [backup_volumes[x]["Attachment"]["Device"] for x in
+        devices = [backup_volumes[x]["Attachment"]["Device"][-1] for x in
                   backup_volumes]
         # mount points
         mounts = dict()
         for part in psutil.disk_partitions():
             for dev in devices:
-                if part.device.startswith(dev):
+                if part.device.rstrip("1234567890")[-1] == dev:
                     if dev not in mounts:
-                        mounts[dev] = list()
-                    mounts[dev].append(part.mountpoint)
+                        mounts[dev[-1]] = list()
+                    mounts[dev[-1]].append(part.mountpoint)
                     break
         # tags
         instance_tags = self.tags
@@ -769,7 +769,8 @@ class Instance(object):
             assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
             backup_tags["Device"] = backup_volumes[volume_id]["Attachment"][
                                     "Device"]
-            backup_tags["MountPoints"] = ",".join(mounts[backup_tags["Device"]])
+            backup_tags["MountPoints"] = ",".join(mounts[backup_tags[
+                                         "Device"][-1]])
             # volume tags > defaults
             backup_tags.update(backup_volumes[volume_id]["Tags"])
             # given tags > volume tags
