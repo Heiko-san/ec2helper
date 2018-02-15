@@ -716,6 +716,40 @@ class Instance(object):
                 volumes[vid] = volume
         return volumes
 
+    def delete_old_backups(self, delete_tag="DeleteAfter"):
+        """
+        .. code-block:: none
+            :caption: AWS API permissions
+
+            ec2:DeleteSnapshot
+            ec2:DescribeSnapshots
+        """
+        client = boto3.client("ec2", region_name=self.region)
+        paginator = client.get_paginator('describe_snapshots')
+        snapshots = list()
+        now = datetime.now(tz=tz.tzutc())
+        for page in paginator.paginate(
+            Filters=[
+                {
+                    'Name': 'tag:InstanceId',
+                    'Values': [self.id]
+                },
+                {
+                    'Name': 'tag-key',
+                    'Values': [delete_tag]
+                }
+            ]
+        ):
+            for snapshot in page["Snapshots"]:
+                snapshot["Tags"] = tags_to_dict(snapshot["Tags"])
+                if now > snapshot["Tags"][delete_tag]:
+                    snapshots.append(snapshot)
+        for snapshot in snapshots:
+            response = client.delete_snapshot(
+                SnapshotId=snapshot["SnapshotId"]
+            )
+            assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+
     def create_backup(self, volumes=None, retention=30,
         delete_tag="DeleteAfter", tags=None):
         """
@@ -751,10 +785,11 @@ class Instance(object):
         instance_tags = self.tags
         backup_tags = {
             delete_tag: datetime.now(tz=tz.tzutc()).replace(second=0,
-                        microsecond=0) + timedelta(days=retention),
+                        microsecond=0) + timedelta(days=int(retention)),
             "InstanceName": instance_tags["Name"] if "Name" in instance_tags
                         else "UnknownInstanceName",
-            "InstanceId": self.id
+            "InstanceId": self.id,
+            "SnapshotType": "Backup"
         }
         # create and tag the snapshots
         client = boto3.client("ec2", region_name=self.region)
