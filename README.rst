@@ -37,6 +37,7 @@ For all actions.
                     "ec2:DescribeVolumes",
                     "ec2:DeleteTags",
                     "ec2:DescribeTags",
+                    "ec2:CreateSnapshot",
                     "ec2:CreateTags"
                 ],
                 "Resource": "*"

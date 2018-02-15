@@ -17,9 +17,13 @@ Module :mod:`ec2helper.instance` provides the
     i.autoscaling_protected = True
 """
 from __future__ import unicode_literals, absolute_import
+import copy
 import six
 import boto3
 import requests
+import psutil
+from datetime import datetime, timedelta
+from dateutil import tz
 from ec2helper.utils import IS_EC2, metadata, tags_to_dict, dict_to_tags
 from ec2helper.tag_lock import TagLock
 from ec2helper.as_protection import AutoscalingProtection
@@ -625,12 +629,12 @@ class Instance(object):
         :raises ec2helper.errors.TagNotFound: If :attr:`group_tag` can't be
             found as a tag on this EC2 instance. At the time the exception is
             raised the metric data was already saved for "InstanceId" dimension.
-        
+
         .. code-block:: python
             :caption: Example: Put data by instance id and autoscaling group
 
             from ec2helper import Instance
-                                                                                
+
             i = Instance()
             i.put_metric_data_ec2_group("aws:autoscaling:groupName",
                 "MemoryUtilization", 35.6, "Percent")
@@ -658,33 +662,33 @@ class Instance(object):
         Get this EC2 instance's volumes.
 
         This attribute is readonly.
-        
+
         .. code-block:: json
             :caption: Example value
 
             {
                 "vol-0e3272af46c7d5d1e": {
                     "Attachment": {
-                        "AttachTime": "2018-02-07T16:07:54+00:00", 
-                        "DeleteOnTermination": true, 
-                        "Device": "/dev/xvda", 
-                        "InstanceId": "i-0d2cb773a18dfa487", 
-                        "Root": true, 
-                        "State": "attached", 
+                        "AttachTime": "2018-02-07T16:07:54+00:00",
+                        "DeleteOnTermination": true,
+                        "Device": "/dev/xvda",
+                        "InstanceId": "i-0d2cb773a18dfa487",
+                        "Root": true,
+                        "State": "attached",
                         "VolumeId": "vol-0e3272af46c7d5d1e"
-                    }, 
-                    "AvailabilityZone": "eu-central-1b", 
-                    "CreateTime": "2018-02-07T16:07:54.615000+00:00", 
-                    "Encrypted": false, 
-                    "Iops": 100, 
-                    "Size": 8, 
-                    "SnapshotId": "snap-036167fc518855549", 
-                    "State": "in-use", 
-                    "VolumeId": "vol-0e3272af46c7d5d1e", 
+                    },
+                    "AvailabilityZone": "eu-central-1b",
+                    "CreateTime": "2018-02-07T16:07:54.615000+00:00",
+                    "Encrypted": false,
+                    "Iops": 100,
+                    "Size": 8,
+                    "SnapshotId": "snap-036167fc518855549",
+                    "State": "in-use",
+                    "VolumeId": "vol-0e3272af46c7d5d1e",
                     "VolumeType": "gp2"
                 }
             }
-        
+
         .. code-block:: none
             :caption: AWS API permissions
 
@@ -705,5 +709,78 @@ class Instance(object):
                 volume["Attachment"]["Root"] = True if volume["Attachment"][
                     "Device"] == "/dev/xvda" else False
                 del volume["Attachments"]
+                if "Tags" in volume:
+                    volume["Tags"] = tags_to_dict(volume["Tags"])
+                else:
+                    volume["Tags"] = {}
                 volumes[vid] = volume
         return volumes
+
+    def create_backup(self, volumes=None, retention=30,
+        delete_tag="DeleteAfter", tags=None):
+        """
+        .. code-block:: none
+            :caption: AWS API permissions
+
+            ec2:CreateSnapshot
+            ec2:CreateTags
+            ec2:DescribeTags
+            ec2:DescribeVolumes
+        """
+        # volumes to backup
+        all_volumes = self.volumes
+        backup_volumes = dict()
+        if volumes is None:
+            backup_volumes = all_volumes
+        else:
+            for volume_id in all_volumes:
+                if all_volumes[volume_id]["Attachment"]["Device"] in volumes:
+                    backup_volumes[volume_id] = all_volumes[volume_id]
+        devices = [backup_volumes[x]["Attachment"]["Device"] for x in
+                  backup_volumes]
+        # mount points
+        mounts = dict()
+        for part in psutil.disk_partitions():
+            for dev in devices:
+                if part.device.startswith(dev):
+                    if dev not in mounts:
+                        mounts[dev] = list()
+                    mounts[dev].append(part.mountpoint)
+                    break
+        # tags
+        instance_tags = self.tags
+        backup_tags = {
+            delete_tag: datetime.now(tz=tz.tzutc()).replace(second=0,
+                        microsecond=0) + timedelta(days=retention),
+            "InstanceName": instance_tags["Name"] if "Name" in instance_tags
+                        else "UnknownInstanceName",
+            "InstanceId": self.id
+        }
+        # create and tag the snapshots
+        client = boto3.client("ec2", region_name=self.region)
+        for volume_id in backup_volumes:
+            description = "Backup {0} attached as {1} on {2} ({3})".format(
+                volume_id, backup_volumes[volume_id]["Attachment"]["Device"],
+                self.id, backup_tags["InstanceName"])
+            response = client.create_snapshot(
+                Description=description,
+                VolumeId=volume_id
+            )
+            assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+            backup_tags["Device"] = backup_volumes[volume_id]["Attachment"][
+                                    "Device"]
+            backup_tags["MountPoints"] = ",".join(mounts[backup_tags["Device"]])
+            # volume tags > defaults
+            backup_tags.update(backup_volumes[volume_id]["Tags"])
+            # given tags > volume tags
+            if tags is not None:
+                backup_tags.update(tags)
+            backup_tags["Name"] = "{0} ({1})".format(backup_tags["Name"
+                ] if "Name" in backup_tags else backup_tags["InstanceName"],
+                backup_tags["MountPoints"] if backup_tags["MountPoints"] else
+                backup_tags["Device"])
+            response = client.create_tags(
+                Resources=[response["SnapshotId"]],
+                Tags=dict_to_tags(backup_tags)
+            )
+            assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
